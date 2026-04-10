@@ -1,36 +1,82 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## ControlExpenses — oylik harajatlarni nazorat qilish
 
-## Getting Started
+Bu web-ilova **oylik harajatlar va tushumlarni kiritish**, **dashboard statistikalar** (chart/diagramma) va **ovozli kiritish** (STT) orqali avtomatik aniqlash funksiyasiga ega.
 
-First, run the development server:
+### Nimalar mavjud?
+
+- **Harajat/Tushum yozuvlari**
+  - Qo‘lda kiritish
+  - Ovozli kiritish (audio → transkripsiya → summa/kategoriya aniqlash)
+- **Dashboard**
+  - Oylik tushum/harajat/sof natija
+  - Kunlar bo‘yicha grafik
+  - Kategoriya bo‘yicha diagramma (harajat)
+- **Backend API**: Next.js `route.ts` (ortiqcha alohida backend yo‘q)
+- **DB**: PostgreSQL + TypeORM
+
+### Qanday ishlaydi (ovozli kiritish)?
+
+1. Foydalanuvchi audio yuboradi (`/api/voice`)
+2. Backend `ffmpeg` bilan audio’ni `16kHz mono wav` ga o‘tkazadi
+3. Lokal Vosk modeli bilan transkripsiya qiladi (`stt/transcribe.py`)
+4. Matndan **summa** (masalan: `120 ming`, `45 ming`, `bir million`) ajratiladi
+5. Keyword rule orqali **kategoriya** topiladi:
+   - `taksi` → Transport
+   - `supermarket` → Oziq-ovqat
+   - `ijara` → Uy-joy
+6. UI’da **tasdiqlash oynasi** chiqadi, keyin saqlanadi
+
+### “Prediction” (aniqlash) nimalar chiqaradi?
+
+- **type**: `expense` yoki `income` (tushumga oid keyword’lar orqali)
+- **category**: keyword rule orqali (Transport/Oziq-ovqat/Uy-joy/…)
+- **amount**: regex + oddiy parser orqali (raqamli va so‘zli qiymatlar)
+
+## Ishga tushirish (Docker tavsiya qilinadi)
+
+Talab:
+
+- Docker Desktop
+
+1) Modelni qo‘ying:
+
+- `models/vosk-model-small-uz-0.22/` (unzip qilingan papka)
+
+2) Start:
+
+```bash
+docker compose up --build
+```
+
+So‘ng brauzerda `http://localhost:3000` ni oching.
+
+## Lokal kompyuterda ishlatish
+
+Talab:
+
+- Node.js
+- PostgreSQL
+- Python 3
+- ffmpeg (PATH’da)
+
+1) `.env` tayyorlang:
+
+- `.env.example` dan nusxa oling va `DATABASE_URL` hamda `VOSK_MODEL_PATH` ni sozlang
+
+2) Dependency:
+
+```bash
+npm install
+```
+
+3) DB (PostgreSQL) ishga tushgan bo‘lsin.
+
+4) Dev server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Vosk Uzbek modeli bo‘yicha qo‘llanma
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+`docs/VOSK_UZ.md` ni o‘qing.

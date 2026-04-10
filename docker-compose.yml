@@ -1,0 +1,38 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: controlexpenses-db
+    environment:
+      POSTGRES_DB: controlexpenses
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 2004
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: controlexpenses-app
+    depends_on:
+      - db
+    environment:
+      NODE_ENV: production
+      AUTH_SECRET: f576a07248547f0541004966809944c0954363950b5896949298415029907842
+      DATABASE_URL: postgresql://postgres:2004@db:5432/controlexpenses
+      TYPEORM_SYNC: "true"
+      PYTHON_BIN: python3
+      STT_SCRIPT: stt/transcribe.py
+      # Model papkasi konteyner ichida:
+      VOSK_MODEL_PATH: /models/vosk-model-small-uz-0.22
+    volumes:
+      # Vosk modelni shu yerga qo'ying:
+      - ./models:/models:ro
+    ports:
+      - "3000:3000"
+
+volumes:
+  pgdata:
+
